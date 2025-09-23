@@ -1,0 +1,69 @@
+# ---------------------------
+# Maven / Java
+# ---------------------------
+/target/
+/.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ---------------------------
+# STS / Spring Tool Suite
+# ---------------------------
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# ---------------------------
+# IntelliJ IDEA
+# ---------------------------
+.idea
+*.iws
+*.iml
+*.ipr
+/out/
+
+# ---------------------------
+# NetBeans
+# ---------------------------
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# ---------------------------
+# VS Code
+# ---------------------------
+.vscode/
+
+# ---------------------------
+# Environment Variables
+# ---------------------------
+.env
+.env.local
+.env.*.local
+
+# ---------------------------
+# Logs
+# ---------------------------
+*.log
+/surefire-reports/
+/failsafe-reports/
+
+# ---------------------------
+# OS files
+# ---------------------------
+.DS_Store
+Thumbs.db
+
+# ---------------------------
+# Docker volumes / data
+# ---------------------------
+**/postgres_data/
