@@ -2,7 +2,7 @@ package com.hospital.api.entity;
 
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,21 +12,21 @@ class AppointmentEntityTest {
 
     @Test
     void testBuilderAndGetters() {
-        LocalTime time = LocalTime.of(10, 30);
+        LocalDateTime dateTime = LocalDateTime.of(2025, 1, 1, 10, 30);
 
         Patient patient = Patient.builder().firstName("Ana").lastName("Gomez").build();
         Doctor doctor = Doctor.builder().firstName("Luis").lastName("Martínez").build();
         Room room = Room.builder().name("Sala 1").location("Piso 2").build();
 
         Appointment appointment = Appointment.builder()
-                .appointmentDate(time)
+                .appointmentDate(dateTime)
                 .notes("Consulta rutinaria")
                 .patient(patient)
                 .doctor(doctor)
                 .room(room)
                 .build();
 
-        assertEquals(time, appointment.getAppointmentDate());
+        assertEquals(dateTime, appointment.getAppointmentDate());
         assertEquals("Consulta rutinaria", appointment.getNotes());
         assertEquals(patient, appointment.getPatient());
         assertEquals(doctor, appointment.getDoctor());
