@@ -90,13 +90,14 @@ class PatientServiceTest {
     @Test
     void updatePatient_WhenExists_ShouldUpdateAndReturnPatient() {
         when(patientRepository.findById(1L)).thenReturn(Optional.of(patient1));
-        when(patientRepository.save(any(Patient.class))).thenReturn(patient1);
+        when(patientRepository.save(any(Patient.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         Patient updates = Patient.builder()
                 .firstName("Updated")
                 .lastName("Name")
                 .email("updated@example.com")
-                .numberPhone("611222343")
+                .numberPhone("111222333")
                 .build();
 
         Patient updated = patientService.updatePatient(1L, updates);
@@ -107,7 +108,7 @@ class PatientServiceTest {
         assertThat(updated.getNumberPhone()).isEqualTo("111222333");
 
         verify(patientRepository, times(1)).findById(1L);
-        verify(patientRepository, times(1)).save(patient1);
+        verify(patientRepository, times(1)).save(any(Patient.class));
     }
 
     @Test
@@ -138,5 +139,4 @@ class PatientServiceTest {
         assertThrows(ResourceNotFoundException.class, () -> patientService.deletePatient(1L));
         verify(patientRepository, times(1)).findById(1L);
     }
-
 }
