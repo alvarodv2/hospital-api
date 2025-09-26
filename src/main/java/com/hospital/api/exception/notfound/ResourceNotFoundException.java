@@ -128,7 +128,6 @@ public class ResourceNotFoundException extends RuntimeException {
             this.context = context;
         }
 
-        // Getters
         public String getErrorCode() { return errorCode; }
         public String getMessage() { return message; }
         public String getResourceType() { return resourceType; }
