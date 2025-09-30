@@ -1,6 +1,8 @@
 package com.hospital.api.controller;
 
-import com.hospital.api.entity.Room;
+import com.hospital.api.dto.CreateRoomDto;
+import com.hospital.api.dto.RoomResponseDto;
+import com.hospital.api.dto.UpdateRoomDto;
 import com.hospital.api.service.RoomService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,17 +32,12 @@ class RoomControllerTest {
     @InjectMocks
     private RoomController roomController;
 
-    private Room testRoom;
-    private List<Room> testRooms;
+    private RoomResponseDto testRoom;
+    private List<RoomResponseDto> testRooms;
 
     @BeforeEach
     void setUp() {
-        testRoom = Room.builder()
-                .id(1L)
-                .name("Examination Room 101")
-                .location("First Floor, West Wing")
-                .build();
-
+        testRoom = new RoomResponseDto(1L, "Examination Room 101", "First Floor, West Wing");
         testRooms = Arrays.asList(testRoom);
     }
 
@@ -49,7 +46,7 @@ class RoomControllerTest {
     void getAllRooms_ShouldReturnListOfRooms() {
         when(roomService.getAllRooms()).thenReturn(testRooms);
 
-        ResponseEntity<List<Room>> response = roomController.getAllRooms();
+        ResponseEntity<List<RoomResponseDto>> response = roomController.getAllRooms();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(testRooms, response.getBody());
@@ -61,7 +58,7 @@ class RoomControllerTest {
     void getRoomById_ShouldReturnRoom() {
         when(roomService.getRoomById(1L)).thenReturn(testRoom);
 
-        ResponseEntity<Room> response = roomController.getRoomById(1L);
+        ResponseEntity<RoomResponseDto> response = roomController.getRoomById(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(testRoom, response.getBody());
@@ -71,25 +68,27 @@ class RoomControllerTest {
     @Test
     @DisplayName("Should create room and return CREATED status")
     void createRoom_ShouldReturnCreatedRoom() {
-        when(roomService.createRoom(any(Room.class))).thenReturn(testRoom);
+        when(roomService.createRoom(any(CreateRoomDto.class))).thenReturn(testRoom);
 
-        ResponseEntity<Room> response = roomController.createRoom(testRoom);
+        CreateRoomDto dto = new CreateRoomDto("Examination Room 101", "First Floor, West Wing");
+        ResponseEntity<RoomResponseDto> response = roomController.createRoom(dto);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(testRoom, response.getBody());
-        verify(roomService).createRoom(testRoom);
+        verify(roomService).createRoom(dto);
     }
 
     @Test
     @DisplayName("Should update room and return updated room")
     void updateRoom_ShouldReturnUpdatedRoom() {
-        when(roomService.updateRoom(eq(1L), any(Room.class))).thenReturn(testRoom);
+        when(roomService.updateRoom(eq(1L), any(UpdateRoomDto.class))).thenReturn(testRoom);
 
-        ResponseEntity<Room> response = roomController.updateRoom(1L, testRoom);
+        UpdateRoomDto dto = new UpdateRoomDto("Updated Name", "Updated Location");
+        ResponseEntity<RoomResponseDto> response = roomController.updateRoom(1L, dto);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(testRoom, response.getBody());
-        verify(roomService).updateRoom(1L, testRoom);
+        verify(roomService).updateRoom(1L, dto);
     }
 
     @Test

@@ -1,6 +1,8 @@
 package com.hospital.api.controller;
 
-import com.hospital.api.entity.Patient;
+import com.hospital.api.dto.CreatePatientDto;
+import com.hospital.api.dto.PatientResponseDto;
+import com.hospital.api.dto.UpdatePatientDto;
 import com.hospital.api.service.PatientService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,68 +32,93 @@ class PatientControllerTest {
     @InjectMocks
     private PatientController patientController;
 
-    private Patient testPatient;
-    private List<Patient> testPatients;
+    private PatientResponseDto testPatientDto;
+    private CreatePatientDto createPatientDto;
+    private UpdatePatientDto updatePatientDto;
+    private List<PatientResponseDto> testPatientDtos;
 
     @BeforeEach
     void setUp() {
-        testPatient = Patient.builder()
-                .id(1L)
-                .firstName("Jane")
-                .lastName("Doe")
-                .email("patient@test.com")
-                .numberPhone("123-456-7890")
-                .build();
+        testPatientDto = new PatientResponseDto(
+                1L,
+                "Jane",
+                "Doe",
+                "patient@test.com",
+                "123-456-7890"
+        );
 
-        testPatients = Arrays.asList(testPatient);
+        createPatientDto = new CreatePatientDto(
+                "Jane",
+                "Doe",
+                "patient@test.com",
+                "123-456-7890"
+        );
+
+        updatePatientDto = new UpdatePatientDto(
+                "Jane",
+                "Doe",
+                "patient@test.com",
+                "123-456-7890"
+        );
+
+        testPatientDtos = Arrays.asList(testPatientDto);
     }
 
     @Test
-    @DisplayName("Should return list of patients")
-    void getAllPatients_ShouldReturnListOfPatients() {
-        when(patientService.getAllPatients()).thenReturn(testPatients);
+    @DisplayName("Should return list of patient DTOs")
+    void getAllPatients_ShouldReturnListOfPatientDtos() {
+        when(patientService.getAllPatients()).thenReturn(testPatientDtos);
 
-        ResponseEntity<List<Patient>> response = patientController.getAllPatients();
+        ResponseEntity<List<PatientResponseDto>> response = patientController.getAllPatients();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(testPatients, response.getBody());
+        assertEquals(testPatientDtos, response.getBody());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().size());
         verify(patientService).getAllPatients();
     }
 
     @Test
-    @DisplayName("Should return patient by ID")
-    void getPatientById_ShouldReturnPatient() {
-        when(patientService.getPatientById(1L)).thenReturn(testPatient);
+    @DisplayName("Should return patient DTO by ID")
+    void getPatientById_ShouldReturnPatientDto() {
+        when(patientService.getPatientById(1L)).thenReturn(testPatientDto);
 
-        ResponseEntity<Patient> response = patientController.getPatientById(1L);
+        ResponseEntity<PatientResponseDto> response = patientController.getPatientById(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(testPatient, response.getBody());
+        assertEquals(testPatientDto, response.getBody());
+        assertNotNull(response.getBody());
+        assertEquals(1L, response.getBody().getId());
+        assertEquals("Jane", response.getBody().getFirstName());
         verify(patientService).getPatientById(1L);
     }
 
     @Test
-    @DisplayName("Should create patient and return CREATED status")
-    void createPatient_ShouldReturnCreatedPatient() {
-        when(patientService.createPatient(any(Patient.class))).thenReturn(testPatient);
+    @DisplayName("Should create patient and return CREATED status with DTO")
+    void createPatient_ShouldReturnCreatedPatientDto() {
+        when(patientService.createPatient(any(CreatePatientDto.class))).thenReturn(testPatientDto);
 
-        ResponseEntity<Patient> response = patientController.createPatient(testPatient);
+        ResponseEntity<PatientResponseDto> response = patientController.createPatient(createPatientDto);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(testPatient, response.getBody());
-        verify(patientService).createPatient(testPatient);
+        assertEquals(testPatientDto, response.getBody());
+        assertNotNull(response.getBody());
+        assertEquals("Jane", response.getBody().getFirstName());
+        verify(patientService).createPatient(createPatientDto);
     }
 
     @Test
-    @DisplayName("Should update patient and return updated patient")
-    void updatePatient_ShouldReturnUpdatedPatient() {
-        when(patientService.updatePatient(eq(1L), any(Patient.class))).thenReturn(testPatient);
+    @DisplayName("Should update patient and return updated patient DTO")
+    void updatePatient_ShouldReturnUpdatedPatientDto() {
+        when(patientService.updatePatient(eq(1L), any(UpdatePatientDto.class))).thenReturn(testPatientDto);
 
-        ResponseEntity<Patient> response = patientController.updatePatient(1L, testPatient);
+        ResponseEntity<PatientResponseDto> response = patientController.updatePatient(1L, updatePatientDto);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(testPatient, response.getBody());
-        verify(patientService).updatePatient(1L, testPatient);
+        assertEquals(testPatientDto, response.getBody());
+        assertNotNull(response.getBody());
+        assertEquals(1L, response.getBody().getId());
+        verify(patientService).updatePatient(1L, updatePatientDto);
     }
 
     @Test
@@ -102,6 +129,7 @@ class PatientControllerTest {
         ResponseEntity<Void> response = patientController.deletePatient(1L);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertNull(response.getBody());
         verify(patientService).deletePatient(1L);
     }
 

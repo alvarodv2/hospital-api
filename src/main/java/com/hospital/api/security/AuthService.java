@@ -3,7 +3,6 @@ package com.hospital.api.security;
 import com.hospital.api.dto.*;
 import com.hospital.api.entity.User;
 import com.hospital.api.repository.UserRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,8 @@
 package com.hospital.api.controller;
 
-import com.hospital.api.entity.Doctor;
+import com.hospital.api.dto.CreateDoctorDto;
+import com.hospital.api.dto.DoctorResponseDto;
+import com.hospital.api.dto.UpdateDoctorDto;
 import com.hospital.api.service.DoctorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,68 +32,84 @@ class DoctorControllerTest {
     @InjectMocks
     private DoctorController doctorController;
 
-    private Doctor testDoctor;
-    private List<Doctor> testDoctors;
+    private DoctorResponseDto testDoctorResponse;
+    private List<DoctorResponseDto> testDoctorResponses;
+    private CreateDoctorDto createDoctorDto;
+    private UpdateDoctorDto updateDoctorDto;
 
     @BeforeEach
     void setUp() {
-        testDoctor = Doctor.builder()
-                .id(1L)
-                .firstName("John")
-                .lastName("Test")
-                .specialty("Cardiology")
-                .email("doctor@test.com")
-                .build();
+        testDoctorResponse = new DoctorResponseDto(
+                1L,
+                "John",
+                "Test",
+                "doctor@test.com",
+                "Cardiology"
+        );
 
-        testDoctors = Arrays.asList(testDoctor);
+        testDoctorResponses = Arrays.asList(testDoctorResponse);
+
+        createDoctorDto = new CreateDoctorDto(
+                "John",
+                "Test",
+                "doctor@test.com",
+                "Cardiology"
+        );
+
+        updateDoctorDto = new UpdateDoctorDto(
+                "John",
+                "Test",
+                "doctor@test.com",
+                "Cardiology"
+        );
     }
 
     @Test
     @DisplayName("Should return list of doctors")
     void getAllDoctors_ShouldReturnListOfDoctors() {
-        when(doctorService.getAllDoctors()).thenReturn(testDoctors);
+        when(doctorService.getAllDoctors()).thenReturn(testDoctorResponses);
 
-        ResponseEntity<List<Doctor>> response = doctorController.getAllDoctors();
+        ResponseEntity<List<DoctorResponseDto>> response = doctorController.getAllDoctors();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(testDoctors, response.getBody());
+        assertEquals(testDoctorResponses, response.getBody());
         verify(doctorService).getAllDoctors();
     }
 
     @Test
     @DisplayName("Should return doctor by ID")
     void getDoctorById_ShouldReturnDoctor() {
-        when(doctorService.getDoctorById(1L)).thenReturn(testDoctor);
+        when(doctorService.getDoctorById(1L)).thenReturn(testDoctorResponse);
 
-        ResponseEntity<Doctor> response = doctorController.getDoctorById(1L);
+        ResponseEntity<DoctorResponseDto> response = doctorController.getDoctorById(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(testDoctor, response.getBody());
+        assertEquals(testDoctorResponse, response.getBody());
         verify(doctorService).getDoctorById(1L);
     }
 
     @Test
     @DisplayName("Should create doctor and return CREATED status")
     void createDoctor_ShouldReturnCreatedDoctor() {
-        when(doctorService.createDoctor(any(Doctor.class))).thenReturn(testDoctor);
+        when(doctorService.createDoctor(any(CreateDoctorDto.class))).thenReturn(testDoctorResponse);
 
-        ResponseEntity<Doctor> response = doctorController.createDoctor(testDoctor);
+        ResponseEntity<DoctorResponseDto> response = doctorController.createDoctor(createDoctorDto);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(testDoctor, response.getBody());
-        verify(doctorService).createDoctor(testDoctor);
+        assertEquals(testDoctorResponse, response.getBody());
+        verify(doctorService).createDoctor(createDoctorDto);
     }
 
     @Test
     @DisplayName("Should update doctor and return updated doctor")
     void updateDoctor_ShouldReturnUpdatedDoctor() {
-        when(doctorService.updateDoctor(eq(1L), any(Doctor.class))).thenReturn(testDoctor);
+        when(doctorService.updateDoctor(eq(1L), any(UpdateDoctorDto.class))).thenReturn(testDoctorResponse);
 
-        ResponseEntity<Doctor> response = doctorController.updateDoctor(1L, testDoctor);
+        ResponseEntity<DoctorResponseDto> response = doctorController.updateDoctor(1L, updateDoctorDto);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(testDoctor, response.getBody());
-        verify(doctorService).updateDoctor(1L, testDoctor);
+        assertEquals(testDoctorResponse, response.getBody());
+        verify(doctorService).updateDoctor(1L, updateDoctorDto);
     }
 
     @Test

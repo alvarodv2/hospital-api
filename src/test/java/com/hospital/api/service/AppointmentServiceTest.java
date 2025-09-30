@@ -1,18 +1,35 @@
 package com.hospital.api.service;
 
-import com.hospital.api.entity.*;
+import com.hospital.api.dto.AppointmentResponseDto;
+import com.hospital.api.dto.CreateAppointmentDto;
+import com.hospital.api.dto.UpdateAppointmentDto;
+import com.hospital.api.entity.Appointment;
+import com.hospital.api.entity.Doctor;
+import com.hospital.api.entity.Patient;
+import com.hospital.api.entity.Room;
 import com.hospital.api.exception.notfound.AppointmentNotFoundException;
+import com.hospital.api.exception.notfound.ResourceNotFoundException;
 import com.hospital.api.repository.AppointmentRepository;
+import com.hospital.api.repository.DoctorRepository;
+import com.hospital.api.repository.PatientRepository;
+import com.hospital.api.repository.RoomRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class AppointmentServiceTest {
 
     @InjectMocks
@@ -21,15 +38,24 @@ class AppointmentServiceTest {
     @Mock
     private AppointmentRepository appointmentRepository;
 
+    @Mock
+    private DoctorRepository doctorRepository;
+
+    @Mock
+    private PatientRepository patientRepository;
+
+    @Mock
+    private RoomRepository roomRepository;
+
     private Appointment appointment;
     private Doctor doctor;
     private Patient patient;
     private Room room;
+    private CreateAppointmentDto createAppointmentDto;
+    private UpdateAppointmentDto updateAppointmentDto;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-
         doctor = Doctor.builder()
                 .id(1L)
                 .firstName("John")
@@ -47,9 +73,9 @@ class AppointmentServiceTest {
                 .build();
 
         room = Room.builder()
-                .id(2L)
-                .name("Office 102")
-                .location("Second floor")
+                .id(1L)
+                .name("Room 101")
+                .location("First floor")
                 .build();
 
         appointment = Appointment.builder()
@@ -61,27 +87,45 @@ class AppointmentServiceTest {
                 .room(room)
                 .prescriptions(new ArrayList<>())
                 .build();
+
+        createAppointmentDto = new CreateAppointmentDto();
+        createAppointmentDto.setAppointmentDate(LocalDateTime.now());
+        createAppointmentDto.setNotes("Initial consultation");
+        createAppointmentDto.setDoctorId(1L);
+        createAppointmentDto.setPatientId(1L);
+        createAppointmentDto.setRoomId(1L);
+
+        updateAppointmentDto = new UpdateAppointmentDto();
+        updateAppointmentDto.setAppointmentDate(LocalDateTime.now().plusDays(1));
+        updateAppointmentDto.setNotes("Updated consultation");
+        updateAppointmentDto.setDoctorId(2L);
+        updateAppointmentDto.setPatientId(2L);
+        updateAppointmentDto.setRoomId(2L);
     }
 
     @Test
     void getAllAppointments_ReturnsList() {
         when(appointmentRepository.findAll()).thenReturn(List.of(appointment));
 
-        List<Appointment> appointments = appointmentService.getAllAppointments();
+        List<AppointmentResponseDto> appointments = appointmentService.getAllAppointments();
 
         assertNotNull(appointments);
         assertEquals(1, appointments.size());
+        assertEquals(appointment.getId(), appointments.get(0).getId());
+        assertEquals(appointment.getNotes(), appointments.get(0).getNotes());
         verify(appointmentRepository, times(1)).findAll();
     }
 
     @Test
-    void getAppointmentById_WhenExists_ReturnsAppointment() {
+    void getAppointmentById_WhenExists_ReturnsAppointmentDto() {
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
-        Appointment found = appointmentService.getAppointmentById(1L);
+        AppointmentResponseDto found = appointmentService.getAppointmentById(1L);
 
         assertNotNull(found);
-        assertEquals("John", found.getDoctor().getFirstName());
+        assertEquals(appointment.getId(), found.getId());
+        assertEquals(appointment.getNotes(), found.getNotes());
+        assertEquals(doctor.getFirstName() + " " + doctor.getLastName(), found.getDoctor().getFullName());
         verify(appointmentRepository, times(1)).findById(1L);
     }
 
@@ -94,18 +138,23 @@ class AppointmentServiceTest {
     }
 
     @Test
-    void createAppointment_ReturnsSavedAppointment() {
+    void createAppointment_ReturnsSavedAppointmentDto() {
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        when(patientRepository.findById(1L)).thenReturn(Optional.of(patient));
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
         when(appointmentRepository.save(any(Appointment.class))).thenReturn(appointment);
 
-        Appointment saved = appointmentService.createAppointment(appointment);
+        AppointmentResponseDto saved = appointmentService.createAppointment(createAppointmentDto);
 
         assertNotNull(saved);
-        assertEquals("Initial consultation", saved.getNotes());
-        verify(appointmentRepository, times(1)).save(appointment);
+        assertEquals(appointment.getId(), saved.getId());
+        assertEquals(appointment.getNotes(), saved.getNotes());
+        assertEquals(doctor.getFirstName() + " " + doctor.getLastName(), saved.getDoctor().getFullName());
+        verify(appointmentRepository, times(1)).save(any(Appointment.class));
     }
 
     @Test
-    void updateAppointment_WhenExists_ReturnsUpdatedAppointment() {
+    void updateAppointment_WhenExists_ReturnsUpdatedAppointmentDto() {
         Doctor newDoctor = Doctor.builder()
                 .id(2L)
                 .firstName("Mary")
@@ -115,37 +164,21 @@ class AppointmentServiceTest {
                 .appointments(new ArrayList<>())
                 .build();
 
-        Patient newPatient = Patient.builder()
-                .id(2L)
-                .firstName("Charles")
-                .lastName("Martinez")
-                .email("charles.martinez@example.com")
-                .build();
-
-        Room newRoom = Room.builder()
-                .id(2L)
-                .name("Office 102")
-                .location("Second floor")
-                .build();
-
-        Appointment updatedDetails = Appointment.builder()
-                .appointmentDate(LocalDateTime.now().plusDays(1))
-                .notes("Appointment update")
-                .doctor(newDoctor)
-                .patient(newPatient)
-                .room(newRoom)
-                .prescriptions(new ArrayList<>())
-                .build();
-
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
-        when(appointmentRepository.save(any(Appointment.class))).thenReturn(updatedDetails);
+        when(doctorRepository.findById(2L)).thenReturn(Optional.of(newDoctor));
+        when(patientRepository.findById(2L)).thenReturn(Optional.of(Patient.builder().id(2L).firstName("Charles").lastName("Martinez").build()));
+        when(roomRepository.findById(2L)).thenReturn(Optional.of(Room.builder().id(2L).name("Office 102").build()));
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(invocation -> {
+            Appointment savedAppointment = invocation.getArgument(0);
+            savedAppointment.setId(1L);
+            return savedAppointment;
+        });
 
-        Appointment updated = appointmentService.updateAppointment(1L, updatedDetails);
+        AppointmentResponseDto updated = appointmentService.updateAppointment(1L, updateAppointmentDto);
 
-        assertEquals("Appointment update", updated.getNotes());
-        assertEquals("Mary", updated.getDoctor().getFirstName());
-        assertEquals("Charles", updated.getPatient().getFirstName());
-        assertEquals("Office 102", updated.getRoom().getName());
+        assertNotNull(updated);
+        assertEquals("Updated consultation", updated.getNotes());
+        assertEquals("Mary Gomez", updated.getDoctor().getFullName());
         verify(appointmentRepository, times(1)).findById(1L);
         verify(appointmentRepository, times(1)).save(any(Appointment.class));
     }
@@ -153,9 +186,10 @@ class AppointmentServiceTest {
     @Test
     void deleteAppointment_WhenExists_DeletesAppointment() {
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
-        doNothing().when(appointmentRepository).delete(appointment);
+        doNothing().when(appointmentRepository).delete(any(Appointment.class));
 
-        assertDoesNotThrow(() -> appointmentService.deleteAppointment(1L));
+        appointmentService.deleteAppointment(1L);
+
         verify(appointmentRepository, times(1)).findById(1L);
         verify(appointmentRepository, times(1)).delete(appointment);
     }
@@ -166,7 +200,35 @@ class AppointmentServiceTest {
 
         assertThrows(AppointmentNotFoundException.class, () -> appointmentService.deleteAppointment(1L));
         verify(appointmentRepository, times(1)).findById(1L);
-        verify(appointmentRepository, never()).delete(any());
+        verify(appointmentRepository, never()).delete(any(Appointment.class));
     }
+
+    @Test
+    void createAppointment_WhenDoctorNotFound_ThrowsException() {
+        when(doctorRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> appointmentService.createAppointment(createAppointmentDto));
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+    }
+
+    @Test
+    void createAppointment_WhenPatientNotFound_ThrowsException() {
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        when(patientRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> appointmentService.createAppointment(createAppointmentDto));
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+    }
+
+    @Test
+    void createAppointment_WhenRoomNotFound_ThrowsException() {
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        when(patientRepository.findById(1L)).thenReturn(Optional.of(patient));
+        when(roomRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> appointmentService.createAppointment(createAppointmentDto));
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+    }
+
 
 }

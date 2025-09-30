@@ -1,5 +1,8 @@
 package com.hospital.api.service;
 
+import com.hospital.api.dto.CreateRoomDto;
+import com.hospital.api.dto.RoomResponseDto;
+import com.hospital.api.dto.UpdateRoomDto;
 import com.hospital.api.entity.Room;
 import com.hospital.api.exception.notfound.RoomNotFoundException;
 import com.hospital.api.repository.RoomRepository;
@@ -49,9 +52,11 @@ class RoomServiceTest {
     void getAllRooms_ShouldReturnListOfRooms() {
         when(roomRepository.findAll()).thenReturn(Arrays.asList(room1, room2));
 
-        List<Room> rooms = roomService.getAllRooms();
+        List<RoomResponseDto> rooms = roomService.getAllRooms();
 
-        assertThat(rooms).hasSize(2).contains(room1, room2);
+        assertThat(rooms).hasSize(2);
+        assertThat(rooms.get(0).getName()).isEqualTo("Room A");
+        assertThat(rooms.get(1).getName()).isEqualTo("Room B");
         verify(roomRepository, times(1)).findAll();
     }
 
@@ -59,9 +64,10 @@ class RoomServiceTest {
     void getRoomById_WhenExists_ShouldReturnRoom() {
         when(roomRepository.findById(1L)).thenReturn(Optional.of(room1));
 
-        Room found = roomService.getRoomById(1L);
+        RoomResponseDto found = roomService.getRoomById(1L);
 
-        assertThat(found).isEqualTo(room1);
+        assertThat(found.getId()).isEqualTo(1L);
+        assertThat(found.getName()).isEqualTo("Room A");
         verify(roomRepository, times(1)).findById(1L);
     }
 
@@ -75,12 +81,14 @@ class RoomServiceTest {
 
     @Test
     void createRoom_ShouldSaveAndReturnRoom() {
-        when(roomRepository.save(room1)).thenReturn(room1);
+        CreateRoomDto dto = new CreateRoomDto("Room A", "First Floor");
+        when(roomRepository.save(any(Room.class))).thenReturn(room1);
 
-        Room created = roomService.createRoom(room1);
+        RoomResponseDto created = roomService.createRoom(dto);
 
-        assertThat(created).isEqualTo(room1);
-        verify(roomRepository, times(1)).save(room1);
+        assertThat(created.getName()).isEqualTo("Room A");
+        assertThat(created.getLocation()).isEqualTo("First Floor");
+        verify(roomRepository, times(1)).save(any(Room.class));
     }
 
     @Test
@@ -88,16 +96,12 @@ class RoomServiceTest {
         when(roomRepository.findById(1L)).thenReturn(Optional.of(room1));
         when(roomRepository.save(any(Room.class))).thenReturn(room1);
 
-        Room updates = Room.builder()
-                .name("Updated Room")
-                .location("Third Floor")
-                .build();
+        UpdateRoomDto updates = new UpdateRoomDto("Updated Room", "Third Floor");
 
-        Room updated = roomService.updateRoom(1L, updates);
+        RoomResponseDto updated = roomService.updateRoom(1L, updates);
 
         assertThat(updated.getName()).isEqualTo("Updated Room");
         assertThat(updated.getLocation()).isEqualTo("Third Floor");
-
         verify(roomRepository, times(1)).findById(1L);
         verify(roomRepository, times(1)).save(room1);
     }
@@ -106,7 +110,7 @@ class RoomServiceTest {
     void updateRoom_WhenNotFound_ShouldThrowException() {
         when(roomRepository.findById(1L)).thenReturn(Optional.empty());
 
-        Room updates = new Room();
+        UpdateRoomDto updates = new UpdateRoomDto("Name", "Loc");
 
         assertThrows(RoomNotFoundException.class, () -> roomService.updateRoom(1L, updates));
         verify(roomRepository, times(1)).findById(1L);
@@ -130,5 +134,6 @@ class RoomServiceTest {
         assertThrows(RoomNotFoundException.class, () -> roomService.deleteRoom(1L));
         verify(roomRepository, times(1)).findById(1L);
     }
+
 
 }

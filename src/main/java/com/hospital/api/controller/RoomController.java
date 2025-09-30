@@ -1,6 +1,8 @@
 package com.hospital.api.controller;
 
-import com.hospital.api.entity.Room;
+import com.hospital.api.dto.CreateRoomDto;
+import com.hospital.api.dto.RoomResponseDto;
+import com.hospital.api.dto.UpdateRoomDto;
 import com.hospital.api.service.RoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,27 +23,27 @@ public class RoomController {
 
     @Operation(summary = "Get all rooms", description = "Retrieve a list of all rooms")
     @GetMapping
-    public ResponseEntity<List<Room>> getAllRooms() {
+    public ResponseEntity<List<RoomResponseDto>> getAllRooms() {
         return ResponseEntity.ok(roomService.getAllRooms());
     }
 
     @Operation(summary = "Get room by ID", description = "Retrieve a room by its ID")
     @GetMapping("/{id}")
-    public ResponseEntity<Room> getRoomById(@PathVariable Long id) {
+    public ResponseEntity<RoomResponseDto> getRoomById(@PathVariable Long id) {
         return ResponseEntity.ok(roomService.getRoomById(id));
     }
 
     @Operation(summary = "Create a room", description = "Add a new room to the hospital")
     @PostMapping
-    public ResponseEntity<Room> createRoom(@RequestBody Room room) {
-        Room createdRoom = roomService.createRoom(room);
+    public ResponseEntity<RoomResponseDto> createRoom(@RequestBody CreateRoomDto dto) {
+        RoomResponseDto createdRoom = roomService.createRoom(dto);
         return new ResponseEntity<>(createdRoom, HttpStatus.CREATED);
     }
 
     @Operation(summary = "Update room", description = "Update an existing room by ID")
     @PutMapping("/{id}")
-    public ResponseEntity<Room> updateRoom(@PathVariable Long id, @RequestBody Room roomDetails) {
-        return ResponseEntity.ok(roomService.updateRoom(id, roomDetails));
+    public ResponseEntity<RoomResponseDto> updateRoom(@PathVariable Long id, @RequestBody UpdateRoomDto dto) {
+        return ResponseEntity.ok(roomService.updateRoom(id, dto));
     }
 
     @Operation(summary = "Delete room", description = "Delete a room by ID")

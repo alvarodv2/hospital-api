@@ -4,15 +4,15 @@
 Hospital API is a comprehensive hospital management system built with Java 17 and Spring Boot. It provides secure CRUD operations for hospital entities with authentication, validation, and follows clean architecture principles to ensure scalability and maintainability.
 
 ## 🏗️ Architecture
-The project is structured in the following layers:
+The project follows a clean architecture pattern and is structured in the following layers:
 * **Main Package**: Contains the Spring Boot entry point (`HospitalApiApplication.java`)
-* **Config**: Manages Spring Security, database configuration, and environment settings
 * **Controller**: REST API endpoints with validation and security
-* **Service**: Implements business logic and transaction management
-* **Repository**: Interfaces for data access and Spring Data JPA repositories
-* **Entity**: Domain models and JPA entities with Lombok annotations
-* **Security**: Authentication and authorization configuration
-* **DTO**: Data Transfer Objects for API communication
+* **Service**: Business logic implementation and transaction management
+* **Repository**: Spring Data JPA repositories for data access
+* **Entity**: JPA entities (Doctor, Patient, Appointment, Prescription, Room, User)
+* **DTO**: Data Transfer Objects for request/response handling
+* **Security**: JWT authentication and authorization
+* **Exception**: Custom exceptions and global exception handling
 
 ## 🚀 Technologies Used
 * ☕ Java 17
@@ -35,7 +35,7 @@ The project is structured in the following layers:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/hospital-api.git
+git clone https://github.com/alvarodv2/hospital-api.git
 ```
 
 2. Navigate to the project directory:
@@ -63,18 +63,31 @@ docker run --name hospital-postgres \
 Or use Docker Compose (create a `docker-compose.yml` file):
 ```yaml
 version: '3.8'
+
 services:
   postgres:
     image: postgres:latest
-    container_name: hospital-postgres
+    container_name: postgres-container
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: hospital_db
-      POSTGRES_USER: hospital_user
-      POSTGRES_PASSWORD: hospital_password
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:${DB_PORT}"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  hospital-api:
+    build: .
+    container_name: hospital-api
+    env_file:
+      - .env
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    depends_on:
+      - postgres
 
 volumes:
   postgres_data:
@@ -87,47 +100,41 @@ docker-compose up -d
 
 ## ⚙️ Environment Configuration
 
-1. You can find an example configuration file at `src/main/resources/.env.example`:
+1. You can find an example configuration file:
 ```properties
 # Database Configuration
-DB_URL=jdbc:postgresql://localhost:5432/hospital_db
-DB_USERNAME=hospital_user
-DB_PASSWORD=hospital_password
+DB_NAME=db_name
+DB_USERNAME=db_username
+DB_PASSWORD=db_password
+DB_PORT=db_port
 
-# Server Configuration
-SERVER_PORT=8080
+# TESTING
+USER_NAME=user_name
+PASSWORD=password
 
-# Security Configuration
-JWT_SECRET=your-secret-key-here
-JWT_EXPIRATION=86400000
+SERVER_PORT=server_port
 
-# Application Configuration
-APP_NAME=Hospital API
-APP_VERSION=1.0.0
+JWT_SECRET=jwt_secret
+JWT_EXPIRATION=jwt_expiration
 ```
 
-2. Create a `.env` file in the `src/main/resources/` directory and copy the variables from `.env.example`, replacing the values with your actual configuration.
+2. Create a `.env` file and copy the variables from `.env.example`, replacing the values with your actual configuration.
 
 3. Update `src/main/resources/application.properties` to reference these environment variables:
 ```properties
 # Database Configuration
-spring.datasource.url=${DB_URL}
+spring.config.import=optional:file:.env[.properties]
+spring.datasource.url=jdbc:postgresql://localhost:${DB_PORT}/${DB_NAME}
 spring.datasource.username=${DB_USERNAME}
 spring.datasource.password=${DB_PASSWORD}
-spring.datasource.driver-class-name=org.postgresql.Driver
-
-# JPA Configuration
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 
-# Server Configuration
 server.port=${SERVER_PORT}
 
-# Security Configuration
-hospital.app.jwtSecret=${JWT_SECRET}
-hospital.app.jwtExpirationMs=${JWT_EXPIRATION}
+jwt.secret=${JWT_SECRET}
+jwt.expiration=${JWT_EXPIRATION}
 ```
 
 ## ▶️ Execution
@@ -156,7 +163,6 @@ The API will be available at: `http://localhost:8080`
 │   │   │       └── hospital/
 │   │   │           └── api/
 │   │   │               ├── HospitalApiApplication.java  # Main application class
-│   │   │               ├── config/        # Security and database configuration
 │   │   │               ├── controller/    # REST API controllers
 │   │   │               ├── service/       # Business logic services
 │   │   │               ├── repository/    # Spring Data JPA repositories
@@ -165,11 +171,12 @@ The API will be available at: `http://localhost:8080`
 │   │   │               ├── security/      # Security configuration and JWT
 │   │   │               └── exception/     # Custom exceptions and handlers
 │   │   └── resources/         
-│   │       ├── application.properties     # Spring Boot configuration
-│   │       └── .env.example              # Environment variables example
+│   │       ├── application.properties      # Spring Boot configuration
+│   │       └── application-test.properties # Spring Boot Test configuration 
 │   └── test/
 │       └── java/                         # Unit and integration tests
 ├── docker-compose.yml                    # Docker services configuration
+├── .env.example                          # Environment variables example
 ├── pom.xml                               # Maven dependencies and build config
 └── README.md                             # Project documentation
 ```

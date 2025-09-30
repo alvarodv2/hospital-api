@@ -1,16 +1,18 @@
 package com.hospital.api.controller;
 
-import com.hospital.api.entity.Appointment;
+import com.hospital.api.dto.AppointmentResponseDto;
+import com.hospital.api.dto.CreateAppointmentDto;
+import com.hospital.api.dto.UpdateAppointmentDto;
 import com.hospital.api.service.AppointmentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Appointments", description = "Operations for managing appointments")
 @RestController
@@ -22,26 +24,26 @@ public class AppointmentController {
 
     @Operation(summary = "Get all appointments")
     @GetMapping
-    public ResponseEntity<List<Appointment>> getAllAppointments() {
+    public ResponseEntity<List<AppointmentResponseDto>> getAllAppointments() {
         return ResponseEntity.ok(appointmentService.getAllAppointments());
     }
 
     @Operation(summary = "Get appointment by ID")
     @GetMapping("/{id}")
-    public ResponseEntity<Appointment> getAppointmentById(@PathVariable Long id) {
+    public ResponseEntity<AppointmentResponseDto> getAppointmentById(@PathVariable Long id) {
         return ResponseEntity.ok(appointmentService.getAppointmentById(id));
     }
 
     @Operation(summary = "Create a new appointment")
     @PostMapping
-    public ResponseEntity<Appointment> createAppointment(@RequestBody Appointment appointment) {
-        return new ResponseEntity<>(appointmentService.createAppointment(appointment), HttpStatus.CREATED);
+    public ResponseEntity<AppointmentResponseDto> createAppointment(@Valid @RequestBody CreateAppointmentDto createAppointmentDto) {
+        return new ResponseEntity<>(appointmentService.createAppointment(createAppointmentDto), HttpStatus.CREATED);
     }
 
     @Operation(summary = "Update an appointment by ID")
     @PutMapping("/{id}")
-    public ResponseEntity<Appointment> updateAppointment(@PathVariable Long id, @RequestBody Appointment appointmentDetails) {
-        return ResponseEntity.ok(appointmentService.updateAppointment(id, appointmentDetails));
+    public ResponseEntity<AppointmentResponseDto> updateAppointment(@PathVariable Long id, @Valid @RequestBody UpdateAppointmentDto updateAppointmentDto) {
+        return ResponseEntity.ok(appointmentService.updateAppointment(id, updateAppointmentDto));
     }
 
     @Operation(summary = "Delete an appointment by ID")
