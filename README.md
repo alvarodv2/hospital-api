@@ -206,10 +206,37 @@ This project includes GitHub Actions for continuous integration and deployment. 
 
 Check `.github/workflows/` for configuration details.
 
-## 📚 API Documentation
-Once the application is running, you can access:
-* API endpoints at: `http://localhost:8080/api/`
-* Health check at: `http://localhost:8080/actuator/health`
+## 📚 API Documentation (Swagger)
+Once the application is running, you can access the API documentation through Swagger UI:
+
+* **Swagger UI (Interactive Interface)**:
+  ```
+  http://localhost:8080/swagger-ui/index.html
+  ```
+* **OpenAPI Specification (JSON)**:
+  ```
+  http://localhost:8080/v3/api-docs
+  ```
+* **OpenAPI Specification (YAML)**:
+  ```
+  http://localhost:8080/v3/api-docs.yaml
+  ```
+
+### Using Swagger UI
+1. Access the Swagger UI interface at `http://localhost:8080/swagger-ui/index.html`
+2. To test protected endpoints:
+   - First, use the `/api/auth/login` endpoint to get a JWT token
+   - Click the "Authorize" button (🔓 icon)
+   - In the authorization field, enter: `Bearer your-jwt-token`
+   - Click "Authorize"
+3. Now you can:
+   - View all available endpoints
+   - Test endpoints directly from the browser
+   - See request/response models
+   - View response codes and error descriptions
+
+<img width="1490" height="358" alt="image" src="https://github.com/user-attachments/assets/1eedab6b-9f20-48ea-9a95-94a391cb23bb" />
+
 
 ## 🤝 Contributing
 To contribute to the project:
