@@ -81,7 +81,7 @@ services:
 
   hospital-api:
     build: .
-    container_name: hospital-api
+    container_name: app
     env_file:
       - .env
     ports:
@@ -100,7 +100,7 @@ docker-compose up -d
 
 ## ⚙️ Environment Configuration
 
-1. You can find an example configuration file:
+1. Create a `.env` file with the following required variables:
 ```properties
 # Database Configuration
 DB_NAME=db_name
@@ -116,15 +116,18 @@ SERVER_PORT=server_port
 
 JWT_SECRET=jwt_secret
 JWT_EXPIRATION=jwt_expiration
+
+ADMIN_USERNAME=admin_user
+ADMIN_PASSWORD=admin_password
 ```
 
-2. Create a `.env` file and copy the variables from `.env.example`, replacing the values with your actual configuration.
+> ⚠️ **Important**: The `ADMIN_USER` and `ADMIN_PASSWORD` variables are mandatory as the application will automatically create an administrator user with these credentials on first startup. This user will be able to access the `/login` and `/register` endpoints to obtain the JWT token needed to register new users and access protected endpoints.
 
 3. Update `src/main/resources/application.properties` to reference these environment variables:
 ```properties
 # Database Configuration
 spring.config.import=optional:file:.env[.properties]
-spring.datasource.url=jdbc:postgresql://localhost:${DB_PORT}/${DB_NAME}
+spring.datasource.url=jdbc:postgresql://postgres:${DB_PORT}/${DB_NAME}
 spring.datasource.username=${DB_USERNAME}
 spring.datasource.password=${DB_PASSWORD}
 spring.jpa.hibernate.ddl-auto=update
@@ -135,21 +138,28 @@ server.port=${SERVER_PORT}
 
 jwt.secret=${JWT_SECRET}
 jwt.expiration=${JWT_EXPIRATION}
+
+admin.username=${ADMIN_USERNAME}
+admin.password=${ADMIN_PASSWORD}
 ```
 
 ## ▶️ Execution
 
-To run the application:
+Follow these steps to run the application:
+
+1. Clean and package the project with Maven:
 ```bash
-mvn spring-boot:run
+./mvnw clean package
 ```
 
-Or execute the JAR file directly:
+2. Start the services with Docker Compose:
 ```bash
-java -jar target/hospital-api-0.0.1-SNAPSHOT.jar
+docker-compose up --build
 ```
 
 The API will be available at: `http://localhost:8080`
+
+> 📝 **Note**: When starting the application for the first time, make sure you have properly configured the `ADMIN_USER` and `ADMIN_PASSWORD` variables in the `.env` file to access the system.
 
 ## 📁 Project Structure
 ```
@@ -225,15 +235,15 @@ Once the application is running, you can access the API documentation through Sw
 ### Using Swagger UI
 1. Access the Swagger UI interface at `http://localhost:8080/swagger-ui/index.html`
 2. To test protected endpoints:
-   - First, use the `/api/auth/login` endpoint to get a JWT token
-   - Click the "Authorize" button (🔓 icon)
-   - In the authorization field, enter: `Bearer your-jwt-token`
-   - Click "Authorize"
+    - First, use the `/api/auth/login` endpoint to get a JWT token
+    - Click the "Authorize" button (🔓 icon)
+    - In the authorization field, enter: `Bearer your-jwt-token`
+    - Click "Authorize"
 3. Now you can:
-   - View all available endpoints
-   - Test endpoints directly from the browser
-   - See request/response models
-   - View response codes and error descriptions
+    - View all available endpoints
+    - Test endpoints directly from the browser
+    - See request/response models
+    - View response codes and error descriptions
 
 <img width="1490" height="358" alt="image" src="https://github.com/user-attachments/assets/1eedab6b-9f20-48ea-9a95-94a391cb23bb" />
 

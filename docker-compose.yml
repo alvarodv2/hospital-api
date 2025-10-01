@@ -17,7 +17,7 @@ services:
 
   hospital-api:
     build: .
-    container_name: hospital-api
+    container_name: app
     env_file:
       - .env
     ports:
